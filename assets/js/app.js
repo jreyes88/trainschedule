@@ -1,17 +1,7 @@
-// Steps to complete:
-/*
-1. Create Firebase link
-2. Create button for adding new trains - then update the html + update the database
-3. Create a way to retrieve trains from the train database.
-4. Create a way to calculate the time remaining until the next train. Using difference between start and current time. Then use moment.js formatting to set difference in months.
-5. Calculate Total billed
-
-*/
-
-// 1. Link to Firebase
+// Link to Firebase
 var trainData = new Firebase("https://trainschedule666.firebaseio.com/");
 
-// 2. Button for adding Employees
+// Button for adding Trains
 $("#addTrainBtn").on("click", function(){
 
 	// Grabs user input
@@ -20,9 +10,7 @@ $("#addTrainBtn").on("click", function(){
 	var firstTrainTime = $("#firstTrainTimeInput").val().trim();
 	var trainFrequency = $("#frequencyInput").val().trim();
 
-	console.log(firstTrainTime);
-
-	// Creates local "temporary" object for holding employee data
+	// Creates local "temporary" object for holding new train data
 	var newTrain = {
 		name:  trainName,
 		destination: trainDestination,
@@ -30,19 +18,10 @@ $("#addTrainBtn").on("click", function(){
 		frequency: trainFrequency
 	}
 
-	// Uploads employee data to the database
+	// Uploads new train data to the database
 	trainData.push(newTrain);
 
-	// Logs everything to console
-	console.log(newTrain.name);
-	console.log(newTrain.destination);
-	console.log(newTrain.start);
-	console.log(newTrain.frequency)
-
-	// Alert
-	alert("Train successfully added");
-
-	// Clears all of the text-boxes
+	// Clears all of the text-boxes after sending to database
 	$("#trainNameInput").val("");
 	$("#destinationInput").val("");
 	$("#firstTrainTimeInput").val("");
@@ -53,10 +32,8 @@ $("#addTrainBtn").on("click", function(){
 });
 
 
-// 3. Create Firebase event for adding employee to the database and a row in the html when a user adds an entry
+// Create Firebase event for adding employee to the database and a row in the html when a user adds an entry
 trainData.on("child_added", function(childSnapshot, prevChildKey){
-
-	console.log(childSnapshot.val());
 
 	// Store everything into a variable.
 	var trainName = childSnapshot.val().name;
@@ -64,30 +41,24 @@ trainData.on("child_added", function(childSnapshot, prevChildKey){
 	var firstTrainTime = childSnapshot.val().start;
 	var trainFrequency = childSnapshot.val().frequency;
 
-	// Employee Info
-	console.log(trainName);
-	console.log(trainDestination);
-	console.log(firstTrainTime);
-	console.log(trainFrequency);
+	// First Time (pushed back 1 year to make sure it comes before current time)
+	var firstTimeConverted = moment(firstTrainTime,"hh:mm").subtract(1, "years");
 
 	// Prettify the employee start
 	var currentTime = moment();
-	console.log("current time: " + moment(currentTime).format"hh:mm")
 
-	var trainStartPretty = moment.unix(firstTrainTime).format("HH:mm");
-	console.log("train start time: "+ trainStartPretty);
+	// Difference between current time and train's first time
+	var diffTime = moment().diff(moment(firstTimeConverted), "minutes");
 
-	// Calculate the months worked using hardcore math
-	// To calculate the months worked
-	var diffTime = moment().diff(moment.unix(firstTrainTime), "minutes");
-	console.log("Difference in time: " + diffTime);
+	// Time apart (remainder)
+	var tRemainder = diffTime % trainFrequency;
 
-	// // Calculate the total billed rate
-	// var empBilled = trainCycles * trainFrequency;
-	// console.log(empBilled);
+	// Minutes until train
+	var tMinutesTillTrain = trainFrequency - tRemainder;
+
+	// Next Train
+	var nextTrain = moment().add(tMinutesTillTrain, "minutes");
 
 	// Add each train's data into the table
-	$("#trainTable > tbody").append("<tr><td>" + trainName + "</td><td>" + trainDestination + "</td><td>" + trainFrequency + "</td><td>" + trainCycles + "</td><td>" + trainFrequency + "</td></tr>");
-
+	$("#trainTable > tbody").append("<tr><td>" + trainName + "</td><td>" + trainDestination + "</td><td>" + trainFrequency + "</td><td>" + moment(nextTrain).format("hh:mm") + "</td><td>" + tMinutesTillTrain + "</td></tr>");
 });
-
