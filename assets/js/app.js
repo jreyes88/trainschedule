@@ -32,7 +32,7 @@ $("#addTrainBtn").on("click", function(){
 });
 
 
-// Create Firebase event for adding employee to the database and a row in the html when a user adds an entry
+// Create Firebase event for adding train to the database and a row in the html when a user adds an entry
 trainData.on("child_added", function(childSnapshot, prevChildKey){
 
 	// Store everything into a variable.
@@ -44,7 +44,7 @@ trainData.on("child_added", function(childSnapshot, prevChildKey){
 	// First Time (pushed back 1 year to make sure it comes before current time)
 	var firstTimeConverted = moment(firstTrainTime,"hh:mm").subtract(1, "years");
 
-	// Prettify the employee start
+	// Prettify the train start
 	var currentTime = moment();
 
 	// Difference between current time and train's first time
